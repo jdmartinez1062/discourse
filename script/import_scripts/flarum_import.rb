@@ -52,6 +52,7 @@ class ImportScripts::FLARUM < ImportScripts::Base
       next if all_records_exist? :users, results.map { |u| u["id"].to_i }
 
       create_users(results, total: total_count, offset: offset) do |user|
+        byebug
         {
           id: user["id"],
           email: user["email"],
@@ -61,6 +62,7 @@ class ImportScripts::FLARUM < ImportScripts::Base
           last_seen_at: user["last_seen_at"],
           post_create_action:
             proc do |new_user|
+              byebug
               path = File.join(AVATAR_UPLOADS_DIR, user["avatar_url"])
               if File.exist?(path)
                 begin
