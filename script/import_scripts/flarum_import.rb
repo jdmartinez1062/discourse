@@ -9,7 +9,7 @@ require File.expand_path(File.dirname(__FILE__) + "/base.rb")
 class ImportScripts::FLARUM < ImportScripts::Base
   #SET THE APPROPRIATE VALUES FOR YOUR MYSQL CONNECTION
   FLARUM_HOST ||= ENV["FLARUM_HOST"] || "localhost"
-  FLARUM_DB ||= ENV["FLARUM_DB"] || "ajalan"
+  FLARUM_DB ||= ENV["FLARUM_DB"] || "flarum"
   BATCH_SIZE ||= 1000
   FLARUM_USER ||= ENV["FLARUM_USER"] || "root"
   FLARUM_PW ||= ENV["FLARUM_PW"] || ""
