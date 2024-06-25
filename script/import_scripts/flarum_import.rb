@@ -52,7 +52,6 @@ class ImportScripts::FLARUM < ImportScripts::Base
       next if all_records_exist? :users, results.map { |u| u["id"].to_i }
 
       create_users(results, total: total_count, offset: offset) do |user|
-        byebug
         {
           id: user["id"],
           email: user["email"],
