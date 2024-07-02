@@ -185,6 +185,8 @@ class ImportScripts::FLARUM < ImportScripts::Base
       "<ul>" + items.map { |item| "<li>#{item}</li>" }.join(" ") + "</ul>"
     end
 
+    text.gsub!(/<SIZE size="[^"]*">|<\/SIZE>|<COLOR color="[^"]*">|<\/COLOR>|<CENTER>|<\/CENTER>|<RIGTH>|<\/RIGTH>|<LEFT>|<\/LEFT>/, '')
+
     s.gsub!(%r{<URL url="(.*?)"><s>\[</s>(.*?)<e>\]\(.*?\)</e></URL>}) do
       url = $1
       text = $2
