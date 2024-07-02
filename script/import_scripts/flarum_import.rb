@@ -191,25 +191,46 @@ class ImportScripts::FLARUM < ImportScripts::Base
       "[#{text}](#{url})"
     end
 
+    s.gsub!(%r{<s>(\d*.\W*?)<\/s>}) do
+      url = $1
+      text = $2
+      "[#{text}](#{url})"
+    end
+
     s.gsub!(%r{<URL url="(.*?)">(.*?)</URL>}) do
       url = $1
-      "#{url}"
+      "[#{url}](#{url})"
     end
 
     s.gsub!(%r{<IMG src="(.*?)">(.*?)</URL>}) do
       url = $1
-      "#{url}"
+      "![image](#{url})"
     end
 
     s.gsub!(/\[youtube\](.*?)\[\\youtube\]/) do
       video_id = $1
-      "https://www.youtube.com/watch?v=#{video_id}"
+      url = "https://www.youtube.com/watch?v=#{video_id}"
+      "[#{url}](#{url})"
+    end
+
+    s.gsub!(/\[center\]\s*(.*?)\s*\[\/center\]/m) do |center|
+      "[center]\n#{center.strip}\n[/center]"
+    end
+    
+    s.gsub!(/\[right\]\s*(.*?)\s*\[\/right\]/m) do |right|
+      "[right]\n#{right.strip}\n[/right]"
+    end
+    
+    s.gsub!(/\[left\]\s*(.*?)\s*\[\/left\]/m) do |left|
+      "[left]\n#{left.strip}\n[/left]"
     end
 
     s.gsub!(/\[quote\](.*?)\[\\quote\]/) do
       quote = $1
       "[quote]\n#{quote}\n[/quote]"
     end
+
+    s.gsub!(/<\/?[^>]+>/, '')
 
     s
   end
