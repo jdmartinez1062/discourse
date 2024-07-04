@@ -194,9 +194,8 @@ class ImportScripts::FLARUM < ImportScripts::Base
     end
 
     s.gsub!(%r{<s>(\d*.\W*?)<\/s>}) do
-      url = $1
-      text = $2
-      "[#{text}](#{url})"
+      text = $1
+      "text"
     end
 
     s.gsub!(%r{<URL url="(.*?)">(.*?)</URL>}) do
@@ -204,7 +203,7 @@ class ImportScripts::FLARUM < ImportScripts::Base
       "[#{url}](#{url})"
     end
 
-    s.gsub!(%r{<IMG src="(.*?)">(.*?)</URL>}) do
+    s.gsub!(%r{<IMG src="(.*?)">(.*?)</IMG>}) do
       url = $1
       "![image](#{url})"
     end
