@@ -178,6 +178,13 @@ class ImportScripts::FLARUM < ImportScripts::Base
 
     s.gsub!(/\\n/, "")
 
+    s.gsub!(/<\/?[^>]+>/, '')
+
+    s.gsub!(/<s>(\s*!?\[\s*)/, '`\1`')
+    s.gsub!(/\s*\]\s*<\/s>/, '`\1`')
+    s.gsub!(/<e>(\s*!?\[\s*)/, '`\1`')
+    s.gsub!(/\s*\/\s*\]\s*<\/e>/, '`\1`')
+
     s.gsub(%r{<C><s>`</s>(.*?)<e>`</e></C>}, '`\1`')
 
     s.gsub(%r{<LIST>(.*?)</LIST>}m) do |list|
@@ -193,7 +200,7 @@ class ImportScripts::FLARUM < ImportScripts::Base
       "[#{text}](#{url})"
     end
 
-    s.gsub!(%r{<s>(\d*.\W*?)<\/s>}) do
+    s.gsub!(/<s>(\d*.\W*?)<\/s>/) do
       text = $1
       "text"
     end
@@ -203,10 +210,10 @@ class ImportScripts::FLARUM < ImportScripts::Base
       "[#{url}](#{url})"
     end
 
-    s.gsub!(%r{<IMG src="(.*?)">(.*?)</IMG>}) do
-      url = $1
-      "![image](#{url})"
-    end
+    # s.gsub!(%r{<IMG src="(.*?)">(.*?)</IMG>}) do
+    #   url = $1
+    #   "![image](#{url})"
+    # end
 
     s.gsub!(/\[youtube\](.*?)\[\\youtube\]/) do
       video_id = $1
@@ -231,7 +238,7 @@ class ImportScripts::FLARUM < ImportScripts::Base
       "[quote]\n#{quote}\n[/quote]"
     end
 
-    s.gsub!(/<\/?[^>]+>/, '')
+   
 
     s
   end
