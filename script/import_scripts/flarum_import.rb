@@ -61,10 +61,8 @@ class ImportScripts::FLARUM < ImportScripts::Base
           last_seen_at: user["last_seen_at"],
           post_create_action:
             proc do |new_user|
-              byebug
               next if  user["avatar_url"].nil? || user["avatar_url"].empty?
               path = File.join(AVATAR_UPLOADS_DIR, user["avatar_url"])
-              byebug
               if File.exist?(path)
                 begin
                   upload = create_upload(new_user.id, path, File.basename(path))
