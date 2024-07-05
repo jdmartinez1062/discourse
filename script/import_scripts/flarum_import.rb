@@ -41,7 +41,7 @@ class ImportScripts::FLARUM < ImportScripts::Base
     batches(BATCH_SIZE) do |offset|
       results =
         mysql_query(
-          "SELECT id, username, avatar_url, email, joined_at, last_seen_at
+         "SELECT id, username, avatar_url, email, joined_at, last_seen_at
          FROM users
          LIMIT #{BATCH_SIZE}
          OFFSET #{offset};",
