@@ -245,7 +245,7 @@ class ImportScripts::FLARUM < ImportScripts::Base
       "[quote]\n#{quote}\n[/quote]"
     end
 
-    text.gsub!(/<QUOTE>(.*?)<\/QUOTE>/) do |match|
+    s.gsub!(/<QUOTE>(.*?)<\/QUOTE>/) do |match|
       content = Regexp.last_match(1).gsub('&gt;', '').strip
       "[quote]\n#{content}\n[/quote]"
     end
