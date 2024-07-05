@@ -185,14 +185,14 @@ class ImportScripts::FLARUM < ImportScripts::Base
     s.gsub!(/<e>(\s*!?\[\s*)/, '`\1`')
     s.gsub!(/\s*\/\s*\]\s*<\/e>/, '`\1`')
 
-    s.gsub(%r{<C><s>`</s>(.*?)<e>`</e></C>}, '`\1`')
+    s.gsub!(%r{<C><s>`</s>(.*?)<e>`</e></C>}, '`\1`')
 
-    s.gsub(%r{<LIST>(.*?)</LIST>}m) do |list|
+    s.gsub!(%r{<LIST>(.*?)</LIST>}m) do |list|
       items = list.scan(%r{<LI><s>- </s>\s*(.*?)\s*</LI>}m).flatten
       "<ul>" + items.map { |item| "<li>#{item}</li>" }.join(" ") + "</ul>"
     end
 
-    text.gsub!(/<SIZE size="[^"]*">|<\/SIZE>|<COLOR color="[^"]*">|<\/COLOR>|<CENTER>|<\/CENTER>|<RIGTH>|<\/RIGTH>|<LEFT>|<\/LEFT>/, '')
+    s.gsub!(/<SIZE size="[^"]*">|<\/SIZE>|<COLOR color="[^"]*">|<\/COLOR>|<CENTER>|<\/CENTER>|<RIGHT>|<\/RIGHT>|<LEFT>|<\/LEFT>/i, '')
 
     s.gsub!(%r{<URL url="(.*?)"><s>\[</s>(.*?)<e>\]\(.*?\)</e></URL>}) do
       url = $1
