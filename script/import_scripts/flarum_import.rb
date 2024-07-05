@@ -14,7 +14,7 @@ class ImportScripts::FLARUM < ImportScripts::Base
   FLARUM_USER ||= ENV["FLARUM_USER"] || "root"
   FLARUM_PW ||= ENV["FLARUM_PW"] || ""
 
-  AVATAR_UPLOADS_DIR ||= "/var/discourse/shared/standalone/import/data/"
+  AVATAR_UPLOADS_DIR ||= "/var/discourse/shared/standalone/import/data/avatars"
 
   def initialize
     super
@@ -61,8 +61,10 @@ class ImportScripts::FLARUM < ImportScripts::Base
           last_seen_at: user["last_seen_at"],
           post_create_action:
             proc do |new_user|
+              byebug
               next if  user["avatar_url"].nil? || user["avatar_url"].empty?
               path = File.join(AVATAR_UPLOADS_DIR, user["avatar_url"])
+              byebug
               if File.exist?(path)
                 begin
                   upload = create_upload(new_user.id, path, File.basename(path))
@@ -210,10 +212,10 @@ class ImportScripts::FLARUM < ImportScripts::Base
       "[#{url}](#{url})"
     end
 
-    # s.gsub!(%r{<IMG src="(.*?)">(.*?)</IMG>}) do
-    #   url = $1
-    #   "![image](#{url})"
-    # end
+    s.gsub!(%r{<IMG src="(.*?)">(.*?)</IMG>}) do
+      url = $1
+      "![image](#{url})"
+    end
 
     s.gsub!(/\[youtube\](.*?)\[\\youtube\]/) do
       video_id = $1
@@ -238,7 +240,15 @@ class ImportScripts::FLARUM < ImportScripts::Base
       "[quote]\n#{quote}\n[/quote]"
     end
 
-   
+    s.gsub!(/\[quote\](.*?)\[\\quote\]/) do
+      quote = $1
+      "[quote]\n#{quote}\n[/quote]"
+    end
+
+    text.gsub!(/<QUOTE>(.*?)<\/QUOTE>/) do |match|
+      content = Regexp.last_match(1).gsub('&gt;', '').strip
+      "[quote]\n#{content}\n[/quote]"
+    end
 
     s
   end
