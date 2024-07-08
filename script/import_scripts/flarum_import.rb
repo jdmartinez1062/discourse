@@ -238,14 +238,17 @@ class ImportScripts::FLARUM < ImportScripts::Base
       "[quote]\n#{quote}\n[/quote]"
     end
 
+    s.gsub!(/<QUOTE>(.*?)<\/QUOTE>/) do |match|
+      byebug
+      content = $1
+      content.gsub!('&gt;', '')
+      byebug
+      "[quote]\n#{content}\n[/quote]"
+    end
+
     s.gsub!(/\[quote\](.*?)\[\\quote\]/) do
       quote = $1
       "[quote]\n#{quote}\n[/quote]"
-    end
-
-    s.gsub!(/<QUOTE>(.*?)<\/QUOTE>/) do |match|
-      content = Regexp.last_match(1).gsub('&gt;', '').strip
-      "[quote]\n#{content}\n[/quote]"
     end
 
     s
