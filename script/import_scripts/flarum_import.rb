@@ -239,10 +239,8 @@ class ImportScripts::FLARUM < ImportScripts::Base
     end
 
     s.gsub!(/<QUOTE>(.*?)<\/QUOTE>/) do |match|
-      byebug
       content = $1
       content.gsub!('&gt;', '')
-      byebug
       "[quote]\n#{content}\n[/quote]"
     end
 
