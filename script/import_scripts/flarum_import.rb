@@ -8,11 +8,13 @@ require File.expand_path(File.dirname(__FILE__) + "/base.rb")
 
 class ImportScripts::FLARUM < ImportScripts::Base
   #SET THE APPROPRIATE VALUES FOR YOUR MYSQL CONNECTION
-  FLARUM_HOST ||= ENV["FLARUM_HOST"] || "db_host"
-  FLARUM_DB ||= ENV["FLARUM_DB"] || "db_name"
+  FLARUM_HOST ||= ENV["FLARUM_HOST"] || "localhost"
+  FLARUM_DB ||= ENV["FLARUM_DB"] || "flarum"
   BATCH_SIZE ||= 1000
-  FLARUM_USER ||= ENV["FLARUM_USER"] || "db_user"
-  FLARUM_PW ||= ENV["FLARUM_PW"] || "db_user_pass"
+  FLARUM_USER ||= ENV["FLARUM_USER"] || "root"
+  FLARUM_PW ||= ENV["FLARUM_PW"] || ""
+
+  AVATAR_UPLOADS_DIR ||= "/var/discourse/shared/standalone/import/data/avatars"
 
   def initialize
     super
@@ -39,7 +41,7 @@ class ImportScripts::FLARUM < ImportScripts::Base
     batches(BATCH_SIZE) do |offset|
       results =
         mysql_query(
-          "SELECT id, username, email, joined_at, last_seen_at
+         "SELECT id, username, avatar_url, email, joined_at, last_seen_at
          FROM users
          LIMIT #{BATCH_SIZE}
          OFFSET #{offset};",
@@ -57,6 +59,23 @@ class ImportScripts::FLARUM < ImportScripts::Base
           name: user["username"],
           created_at: user["joined_at"],
           last_seen_at: user["last_seen_at"],
+          post_create_action:
+            proc do |new_user|
+              next if  user["avatar_url"].nil? || user["avatar_url"].empty?
+              path = File.join(AVATAR_UPLOADS_DIR, user["avatar_url"])
+              if File.exist?(path)
+                begin
+                  upload = create_upload(new_user.id, path, File.basename(path))
+                  if upload.persisted?
+                    new_user.create_user_avatar
+                    new_user.user_avatar.update(custom_upload_id: upload.id)
+                    new_user.update(uploaded_avatar_id: upload.id)
+                  end
+                rescue StandardError
+                  # don't care
+                end
+              end
+            end,
         }
       end
     end
@@ -156,6 +175,81 @@ class ImportScripts::FLARUM < ImportScripts::Base
 
   def process_FLARUM_post(raw, import_id)
     s = raw.dup
+
+    s.gsub!(/\\n/, "")
+
+    s.gsub!(/<\/?[^>]+>/, '')
+
+    s.gsub!(/<s>(\s*!?\[\s*)/, '`\1`')
+    s.gsub!(/\s*\]\s*<\/s>/, '`\1`')
+    s.gsub!(/<e>(\s*!?\[\s*)/, '`\1`')
+    s.gsub!(/\s*\/\s*\]\s*<\/e>/, '`\1`')
+
+    s.gsub!(%r{<C><s>`</s>(.*?)<e>`</e></C>}, '`\1`')
+
+    s.gsub!(%r{<LIST>(.*?)</LIST>}m) do |list|
+      items = list.scan(%r{<LI><s>- </s>\s*(.*?)\s*</LI>}m).flatten
+      "<ul>" + items.map { |item| "<li>#{item}</li>" }.join(" ") + "</ul>"
+    end
+
+    s.gsub!(/<SIZE size="[^"]*">|<\/SIZE>|<COLOR color="[^"]*">|<\/COLOR>|<CENTER>|<\/CENTER>|<RIGHT>|<\/RIGHT>|<LEFT>|<\/LEFT>/i, '')
+
+    s.gsub!(%r{<URL url="(.*?)"><s>\[</s>(.*?)<e>\]\(.*?\)</e></URL>}) do
+      url = $1
+      text = $2
+      "[#{text}](#{url})"
+    end
+
+    s.gsub!(/<s>(\d*.\W*?)<\/s>/) do
+      text = $1
+      "text"
+    end
+
+    s.gsub!(%r{<URL url="(.*?)">(.*?)</URL>}) do
+      url = $1
+      "[#{url}](#{url})"
+    end
+
+    s.gsub!(%r{<IMG src="(.*?)">(.*?)</IMG>}) do
+      url = $1
+      "![image](#{url})"
+    end
+
+    s.gsub!(/\[youtube\](.*?)\[\\youtube\]/) do
+      video_id = $1
+      url = "https://www.youtube.com/watch?v=#{video_id}"
+      "[#{url}](#{url})"
+    end
+
+    s.gsub!(/\[center\]\s*(.*?)\s*\[\/center\]/m) do |center|
+      "[center]\n#{center.strip}\n[/center]"
+    end
+    
+    s.gsub!(/\[right\]\s*(.*?)\s*\[\/right\]/m) do |right|
+      "[right]\n#{right.strip}\n[/right]"
+    end
+    
+    s.gsub!(/\[left\]\s*(.*?)\s*\[\/left\]/m) do |left|
+      "[left]\n#{left.strip}\n[/left]"
+    end
+
+    s.gsub!(/\[quote\](.*?)\[\\quote\]/) do
+      quote = $1
+      "[quote]\n#{quote}\n[/quote]"
+    end
+
+    s.gsub!(/<QUOTE>(.*?)<\/QUOTE>/) do |match|
+      byebug
+      content = $1
+      content.gsub!('&gt;', '')
+      byebug
+      "[quote]\n#{content}\n[/quote]"
+    end
+
+    s.gsub!(/\[quote\](.*?)\[\\quote\]/) do
+      quote = $1
+      "[quote]\n#{quote}\n[/quote]"
+    end
 
     s
   end
