@@ -215,40 +215,34 @@ class ImportScripts::FLARUM < ImportScripts::Base
       "![image](#{url})"
     end
 
-    s.gsub!(/\[youtube\](.*?)\[\\youtube\]/) do
-      video_id = $1
+    s.gsub!(%r{\[youtube\](.*?)\[\/youtube\]}) do
+      video_id = Regexp.last_match(1)
       url = "https://www.youtube.com/watch?v=#{video_id}"
       "[#{url}](#{url})"
     end
 
-    s.gsub!(/\[center\]\s*(.*?)\s*\[\/center\]/m) do |center|
-      "[center]\n#{center.strip}\n[/center]"
+    s.gsub!(%r{\[center\]\s*(.*?)\s*\[\/center\]}) do 
+      "[center]\n#{Regexp.last_match(1).strip}\n[/center]"
     end
     
-    s.gsub!(/\[right\]\s*(.*?)\s*\[\/right\]/m) do |right|
-      "[right]\n#{right.strip}\n[/right]"
+    s.gsub!(%r{\[right\]\s*(.*?)\s*\[\/right\]}) do 
+      "[right]\n#{Regexp.last_match(1).strip}\n[/right]"
     end
     
-    s.gsub!(/\[left\]\s*(.*?)\s*\[\/left\]/m) do |left|
-      "[left]\n#{left.strip}\n[/left]"
+    s.gsub!(%r{\[left\]\s*(.*?)\s*\[\/left\]}) do 
+      "[left]\n#{Regexp.last_match(1).strip}\n[/left]"
     end
 
-    s.gsub!(/\[quote\](.*?)\[\\quote\]/) do
-      quote = $1
+    s.gsub!(%r{\[quote\](.*?)\[\/quote\]}) do
+      quote = Regexp.last_match(1)
       "[quote]\n#{quote}\n[/quote]"
     end
 
-    s.gsub!(/<QUOTE>(.*?)<\/QUOTE>/) do |match|
-      byebug
-      content = $1
+    s.gsub!(%r{<QUOTE>(.*?)<\/QUOTE>}) do
+      content = Regexp.last_match(1)
       content.gsub!('&gt;', '')
-      byebug
+      
       "[quote]\n#{content}\n[/quote]"
-    end
-
-    s.gsub!(/\[quote\](.*?)\[\\quote\]/) do
-      quote = $1
-      "[quote]\n#{quote}\n[/quote]"
     end
 
     s
