@@ -14,7 +14,7 @@ class ImportScripts::FLARUM < ImportScripts::Base
   FLARUM_USER ||= ENV["FLARUM_USER"] || "root"
   FLARUM_PW ||= ENV["FLARUM_PW"] || ""
 
-  AVATAR_UPLOADS_DIR ||= "/var/discourse/shared/standalone/import/data/avatars"
+  AVATAR_UPLOADS_DIR ||= "shared/import/data/avatars"
 
   def initialize
     super
@@ -41,7 +41,7 @@ class ImportScripts::FLARUM < ImportScripts::Base
     batches(BATCH_SIZE) do |offset|
       results =
         mysql_query(
-         "SELECT id, username, avatar_url, email, joined_at, last_seen_at
+          "SELECT id, username, avatar_url, email, joined_at, last_seen_at
          FROM users
          LIMIT #{BATCH_SIZE}
          OFFSET #{offset};",
@@ -61,7 +61,7 @@ class ImportScripts::FLARUM < ImportScripts::Base
           last_seen_at: user["last_seen_at"],
           post_create_action:
             proc do |new_user|
-              next if  user["avatar_url"].nil? || user["avatar_url"].empty?
+              next if user["avatar_url"].nil? || user["avatar_url"].empty?
               path = File.join(AVATAR_UPLOADS_DIR, user["avatar_url"])
               byebug
               if File.exist?(path)
@@ -182,12 +182,7 @@ class ImportScripts::FLARUM < ImportScripts::Base
 
     s.gsub!(/\\n/, "")
 
-    s.gsub!(/<\/?[a-z][^A-Z>]*>/, '')
-
-    # s.gsub!(/<s>(\s*!?\[\s*)/, '`\1`')
-    # s.gsub!(/\s*\]\s*<\/s>/, '`\1`')
-    # s.gsub!(/<e>(\s*!?\[\s*)/, '`\1`')
-    # s.gsub!(/\s*\/\s*\]\s*<\/e>/, '`\1`')
+    s.gsub!(%r{</?[a-z][^A-Z>]*>}, "")
 
     s.gsub!(%r{<C><s>`</s>(.*?)<e>`</e></C>}, '`\1`')
 
@@ -196,7 +191,10 @@ class ImportScripts::FLARUM < ImportScripts::Base
       "<ul>" + items.map { |item| "<li>#{item}</li>" }.join(" ") + "</ul>"
     end
 
-    s.gsub!(/<SIZE size="[^"]*">|<\/SIZE>|<COLOR color="[^"]*">|<\/COLOR>|<CENTER>|<\/CENTER>|<RIGHT>|<\/RIGHT>|<LEFT>|<\/LEFT>/i, '')
+    s.gsub!(
+      %r{<SIZE size="[^"]*">|</SIZE>|<COLOR color="[^"]*">|</COLOR>|<CENTER>|</CENTER>|<RIGHT>|</RIGHT>|<LEFT>|</LEFT>}i,
+      "",
+    )
 
     s.gsub!(%r{<URL url="(.*?)"><s>\[</s>(.*?)<e>\]\(.*?\)</e></URL>}) do
       url = $1
@@ -204,7 +202,7 @@ class ImportScripts::FLARUM < ImportScripts::Base
       "[#{text}](#{url})"
     end
 
-    s.gsub!(/<s>(\d*.\W*?)<\/s>/) do
+    s.gsub!(%r{<s>(\d*.\W*?)</s>}) do
       text = $1
       "text"
     end
@@ -225,17 +223,15 @@ class ImportScripts::FLARUM < ImportScripts::Base
       "[#{url}](#{url})"
     end
 
-    s.gsub!(%r{\[center\]\s*(.*?)\s*\[\/center\]}) do 
+    s.gsub!(%r{\[center\]\s*(.*?)\s*\[\/center\]}) do
       "[center]\n#{Regexp.last_match(1).strip}\n[/center]"
     end
-    
-    s.gsub!(%r{\[right\]\s*(.*?)\s*\[\/right\]}) do 
+
+    s.gsub!(%r{\[right\]\s*(.*?)\s*\[\/right\]}) do
       "[right]\n#{Regexp.last_match(1).strip}\n[/right]"
     end
-    
-    s.gsub!(%r{\[left\]\s*(.*?)\s*\[\/left\]}) do 
-      "[left]\n#{Regexp.last_match(1).strip}\n[/left]"
-    end
+
+    s.gsub!(%r{\[left\]\s*(.*?)\s*\[\/left\]}) { "[left]\n#{Regexp.last_match(1).strip}\n[/left]" }
 
     s.gsub!(%r{\[quote\](.*?)\[\/quote\]}) do
       quote = Regexp.last_match(1)
@@ -244,8 +240,8 @@ class ImportScripts::FLARUM < ImportScripts::Base
 
     s.gsub!(%r{<QUOTE>(.*?)<\/QUOTE>}) do
       content = Regexp.last_match(1)
-      content.gsub!('&gt;', '')
-      
+      content.gsub!("&gt;", "")
+
       "[quote]\n#{content}\n[/quote]"
     end
 
