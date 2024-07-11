@@ -14,7 +14,7 @@ class ImportScripts::FLARUM < ImportScripts::Base
   FLARUM_USER ||= ENV["FLARUM_USER"] || "root"
   FLARUM_PW ||= ENV["FLARUM_PW"] || ""
 
-  AVATAR_UPLOADS_DIR ||= "shared/import/data/avatars"
+  AVATAR_UPLOADS_DIR ||= "/shared/import/data/avatars"
 
   def initialize
     super
