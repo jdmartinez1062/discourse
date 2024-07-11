@@ -63,13 +63,16 @@ class ImportScripts::FLARUM < ImportScripts::Base
             proc do |new_user|
               next if  user["avatar_url"].nil? || user["avatar_url"].empty?
               path = File.join(AVATAR_UPLOADS_DIR, user["avatar_url"])
+              puts path
               if File.exist?(path)
                 begin
+                  puts 'create avatar started'
                   upload = create_upload(new_user.id, path, File.basename(path))
                   if upload.persisted?
                     new_user.create_user_avatar
                     new_user.user_avatar.update(custom_upload_id: upload.id)
                     new_user.update(uploaded_avatar_id: upload.id)
+                    puts 'create avatar finished'
                   end
                 rescue StandardError
                   # don't care
@@ -178,7 +181,7 @@ class ImportScripts::FLARUM < ImportScripts::Base
 
     s.gsub!(/\\n/, "")
 
-    s.gsub!(/<\/?[^>]+>/, '')
+    # s.gsub!(/<\/?[^>]+>/, '')
 
     s.gsub!(/<s>(\s*!?\[\s*)/, '`\1`')
     s.gsub!(/\s*\]\s*<\/s>/, '`\1`')
