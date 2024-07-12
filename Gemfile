@@ -15,9 +15,6 @@ gem "activesupport", "< 7.1"
 gem "railties", "< 7.1"
 gem "sprockets-rails"
 
-gem 'mysql2'
-gem 'ruby-bbcode-to-md', :github => 'nlalonde/ruby-bbcode-to-md'
-
 gem "json"
 
 # TODO: At the moment Discourse does not work with Sprockets 4, we would need to correct internals
